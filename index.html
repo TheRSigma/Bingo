@@ -196,7 +196,7 @@
             margin-bottom: 28px;
         }
 
-        /* ----- 4x4 cell theme: green, orange, blue, yellow ----- */
+        /* ----- 4x4 cell theme: green, orange, blue, yellow — NO EMOJIS ----- */
         .bingo-cell {
             border: 6px solid;
             border-radius: 24px;
@@ -210,48 +210,19 @@
             padding: 16px 8px;
             box-shadow: 0 8px 0 rgba(0,0,0,0.2);
             word-break: break-word;
-            position: relative;
         }
 
-        /* color cycle: green, orange, blue, yellow */
+        /* color cycle: green, orange, blue, yellow — clean, no pseudo-element emojis */
         .bingo-cell:nth-child(4n+1) { background: #e6f3d6; border-color: #3d9e3d; }
         .bingo-cell:nth-child(4n+2) { background: #ffe0b3; border-color: #ff8c42; }
         .bingo-cell:nth-child(4n+3) { background: #cce7ff; border-color: #4a90e2; }
         .bingo-cell:nth-child(4n+4) { background: #fff9b0; border-color: #ffd700; }
-
-        /* themed emojis - no bolt, only leaf/fire/water */
-        .bingo-cell:nth-child(4n+1)::before {
-            content: "🍃";
-            font-size: 1.8rem;
-            position: absolute;
-            top: 4px;
-            left: 8px;
-            opacity: 0.5;
-        }
-        .bingo-cell:nth-child(4n+2)::before {
-            content: "🔥";
-            font-size: 1.8rem;
-            position: absolute;
-            top: 4px;
-            left: 8px;
-            opacity: 0.5;
-        }
-        .bingo-cell:nth-child(4n+3)::before {
-            content: "💧";
-            font-size: 1.8rem;
-            position: absolute;
-            top: 4px;
-            left: 8px;
-            opacity: 0.5;
-        }
-        /* yellow squares get no themed emoji (removed bolt) */
 
         .prediction-text {
             font-size: 1.1rem;
             line-height: 1.3;
             margin-bottom: 8px;
             font-weight: 700;
-            padding-top: 12px;
         }
 
         .topic-tag {
@@ -319,7 +290,7 @@
             </button>
         </div>
 
-        <!-- BINGO BOARD: 4x4 with green, orange, blue, yellow theme -->
+        <!-- BINGO BOARD: 4x4 with green, orange, blue, yellow theme — NO EMOJIS INSIDE CELLS -->
         <div id="bingoBoardContainer" class="bingo-wrapper">
             <div class="board-header">
                 <div class="board-topic" id="displayTopic">POKÉMON DAY</div>
@@ -405,7 +376,7 @@
                 return copy;
             }
 
-            // ----- render 4x4 board with green, orange, blue, yellow theme -----
+            // ----- render 4x4 board with green, orange, blue, yellow theme — NO EMOJIS -----
             function renderBoard() {
                 // fixed global topic: Pokémon Day
                 displayTopic.textContent = 'POKÉMON DAY';
@@ -417,7 +388,7 @@
                 for (let i = 0; i < 16; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'bingo-cell';
-                    // color and emoji are handled by nth-child CSS
+                    // color classes handled by nth-child, no pseudo-element emojis
 
                     const predSpan = document.createElement('div');
                     predSpan.className = 'prediction-text';
