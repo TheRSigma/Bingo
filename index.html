@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Bingo · Topic per cell · Pikachu & Starters</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Flexo', 'Pokemon', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            background: #1b2c33;
+        }
+
+        /* ---------- PIKACHU + STARTER POKEMON BACKGROUND (THEMED) ---------- */
+        .pika-starter-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(circle at 12% 20%, #ffde00 5%, transparent 30%),
+                        radial-gradient(circle at 90% 65%, #f5c542 6%, transparent 32%),
+                        radial-gradient(circle at 35% 80%, #6390f0 8%, transparent 38%),
+                        radial-gradient(circle at 68% 15%, #f08030 9%, transparent 40%),
+                        radial-gradient(circle at 55% 50%, #7ac74c 12%, transparent 45%),
+                        linear-gradient(145deg, #ffdb7c, #fdcc44, #fbb83b);
+            background-size: 200% 200%, 190% 190%, 210% 210%, 220% 220%, 200% 200%, 100% 100%;
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .pika-starter-bg::after {
+            content: "⚡🍃🔥💧🐭🐢🦎🌿⚡";
+            position: absolute;
+            bottom: 8%;
+            right: 1%;
+            font-size: 100px;
+            color: rgba(255, 225, 90, 0.18);
+            text-shadow: 0 0 20px #ffbb00;
+            letter-spacing: 18px;
+            transform: rotate(-3deg);
+            white-space: pre;
+        }
+        .pika-starter-bg::before {
+            content: "";
+            position: absolute;
+            top: 12%;
+            left: 2%;
+            width: 170px;
+            height: 170px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="30" cy="40" r="24" fill="%23ffeaa5" opacity="0.25"/><circle cx="70" cy="40" r="24" fill="%23ffeaa5" opacity="0.25"/><polygon points="50,74 26,48 74,48 50,74" fill="%23ffdb70" opacity="0.2"/></svg>');
+            background-size: contain;
+            opacity: 0.3;
+            transform: rotate(-8deg);
+        }
+
+        .overlay {
+            position: relative;
+            z-index: 30;
+            width: 100%;
+            max-width: 1150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ---------- INPUT SCREEN — TOPIC DROPDOWN PER PREDICTION (16x) ---------- */
+        .input-screen {
+            background: rgba(255, 244, 186, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            width: 100%;
+            padding: 2rem 1.8rem;
+            border-radius: 80px 20px 80px 20px;
+            box-shadow: 0 24px 36px #0000004d, 0 0 0 8px #ffd966, 0 0 0 16px #b33e2b4d;
+            border: 5px solid #ffcb05;
+            margin-bottom: 10px;
+        }
+
+        .input-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2e2a1c;
+            text-shadow: 5px 5px 0 #ffcb05, 2px 2px 0 white;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        /* Main topic (global) - connected to board, but each cell has own topic dropdown */
+        .global-topic-section {
+            background: #ef7e5ca0;
+            border-radius: 70px;
+            padding: 14px 30px;
+            margin-bottom: 28px;
+            border: 4px solid #e07a2f;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .global-label {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #2b1d0e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #globalTopicInput {
+            flex: 1;
+            padding: 14px 22px;
+            font-size: 1.5rem;
+            border: 5px solid #2e6279;
+            border-radius: 60px;
+            background: #fffff0;
+            font-weight: 700;
+            color: #12303a;
+            outline: none;
+            border-bottom-width: 10px;
+        }
+        #globalTopicInput:focus {
+            border-color: #ffaa2a;
+            background: #ffffdd;
+            box-shadow: 0 0 0 7px #ffe484;
+        }
+
+        /* ---------- 16 PREDICTION ROWS: each has text + dropdown topic ---------- */
+        .predictions-16-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px 32px;
+            margin-bottom: 30px;
+        }
+
+        .pred-card {
+            background: #fef7dfe0;
+            border-radius: 40px 12px 40px 12px;
+            padding: 14px 18px;
+            border: 4px solid #f6b44b;
+            box-shadow: 0 8px 0 #c05a2b, inset 0 0 0 2px #ffeeaa;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pred-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pred-index {
+            background: #fb6d5c;
+            color: white;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 1rem;
+            border: 3px solid #ffd966;
+            text-shadow: 2px 2px 0 #962d1f;
+        }
+
+        .topic-select {
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 4px solid #4b8b7a;
+            background: #fffbe5;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1a4a47;
+            outline: none;
+            cursor: pointer;
+            width: 140px;
+        }
+
+        .pred-input {
+            padding: 14px 16px;
+            border: 5px solid #3f8096;
+            border-radius: 40px;
+            background: #fffef7;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1d4c5e;
+            border-bottom-width: 8px;
+            transition: 0.08s;
+            width: 100%;
+        }
+        .pred-input:focus {
+            border-color: #f5ac3b;
+            background: #ffffe3;
+        }
+
+        /* button */
+        .btn-generate {
+            background: radial-gradient(circle at 25% 40%, #ffdb6b, #ffad32);
+            border: 7px solid #b02d1a;
+            color: #262012;
+            font-size: 2.1rem;
+            font-weight: 800;
+            padding: 18px 28px;
+            border-radius: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 16px 0 #862217, 0 16px 32px black;
+            text-transform: uppercase;
+            letter-spacing: 7px;
+            transition: 0.08s;
+            margin-top: 12px;
+        }
+        .btn-generate:hover {
+            background: radial-gradient(circle at 70% 40%, #ffc85a, #ff9723);
+            border-color: #801f12;
+            box-shadow: 0 10px 0 #631a10, 0 16px 32px black;
+            transform: scale(0.97);
+        }
+
+        /* ---------- BINGO BOARD (4x4) — Shows prediction + its topic badge! ---------- */
+        .bingo-wrapper {
+            width: 100%;
+            background: rgba(255, 249, 196, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 90px 30px 90px 30px;
+            padding: 32px 24px;
+            border: 12px solid #fecb4c;
+            box-shadow: 0 26px 40px #00000066, inset 0 0 40px #fffed4;
+            display: none;
+            flex-direction: column;
+        }
+
+        .bingo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 8px 25px 8px;
+        }
+        .global-topic-badge {
+            background: #db3d2e;
+            padding: 16px 32px;
+            border-radius: 70px;
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #fffbe3;
+            text-shadow: 4px 4px 0 #802020;
+            border: 5px solid #ffd966;
+            box-shadow: inset 0 -6px 0 #712828;
+            word-break: break-word;
+            max-width: 70%;
+        }
+        .pikachu-badge {
+            font-size: 3.8rem;
+            filter: drop-shadow(6px 12px 5px #4f3e1a);
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            margin-bottom: 28px;
+        }
+
+        .bingo-cell {
+            background: linear-gradient(145deg, #fffadd, #ffe9a7);
+            border: 6px solid #357a8c;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 14px 8px;
+            color: #103d49;
+            box-shadow: 0 14px 0 #1f5a63, 0 12px 22px black;
+            border-bottom: 10px solid #ffae42;
+            background: radial-gradient(circle at 0% 40%, #ffffe0, #ffecb0);
+            word-break: break-word;
+            position: relative;
+        }
+
+        .prediction-text {
+            font-size: 1.1rem;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .topic-tag {
+            background: #ffd966e6;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #1f3f3f;
+            border: 3px solid #c2672a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-top: 5px;
+            box-shadow: inset 0 -2px 0 #9c6b2b;
+        }
+
+        .btn-reset {
+            background: #417e8b;
+            border: 7px solid #ffd966;
+            color: white;
+            font-size: 1.9rem;
+            font-weight: bold;
+            padding: 16px 38px;
+            border-radius: 80px;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            justify-content: center;
+            cursor: pointer;
+            border-bottom: 12px solid #1f5159;
+            transition: 0.06s;
+            letter-spacing: 5px;
+        }
+        .btn-reset:hover {
+            background: #326b76;
+            border-bottom-width: 7px;
+            transform: translateY(5px);
+        }
+        .starter-footer {
+            margin-top: 28px;
+            display: flex;
+            gap: 45px;
+            font-size: 2.7rem;
+            justify-content: center;
+            color: #382d15;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 950px) {
+            .predictions-16-grid { grid-template-columns: 1fr; }
+            .bingo-grid { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="pika-starter-bg"></div>
+
+    <div class="overlay">
+        <!-- ========== INPUT SCREEN: GLOBAL TOPIC + 16 PREDICTIONS WITH DROPDOWN ========= -->
+        <div id="inputScreen" class="input-screen">
+            <div class="input-title">
+                <span>🐭⚡</span> TOPIC · PER CELL <span>🔥💧🍃</span>
+            </div>
+
+            <!-- Global topic (board title) -->
+            <div class="global-topic-section">
+                <span class="global-label">🎲 BOARD TOPIC</span>
+                <input type="text" id="globalTopicInput" placeholder="e.g., Pokémon Horizons, TCG, Mobile..." value="Starter Expedition">
+            </div>
+
+            <!-- 16 prediction cards — each has its own dropdown topic (General, TCG, Games, Mobile, IRL, Misc) -->
+            <div id="pred16Container" class="predictions-16-grid">
+                <!-- Dynamically filled with JS: 16 cards with input + select -->
+            </div>
+
+            <button id="generateBtn" class="btn-generate">
+                <span>⚡</span> RANDOMIZE BINGO <span>🌀</span>
+            </button>
+            <div style="margin-top: 20px; text-align: center; font-size: 1.3rem; font-weight: 600; color: #3a2b12;">
+                ✦ Pikachu · Bulbasaur · Charmander · Squirtle · topic per prediction ✦
+            </div>
+        </div>
+
+        <!-- ========== BINGO BOARD 4x4 : prediction + topic tag ========= -->
+        <div id="bingoBoardContainer" class="bingo-wrapper">
+            <div class="bingo-header">
+                <div class="global-topic-badge" id="displayGlobalTopic">topic</div>
+                <div class="pikachu-badge">⚡🐭⚡</div>
+            </div>
+            <!-- 4x4 grid injected here -->
+            <div id="bingoGrid" class="bingo-grid"></div>
+            <button id="resetBtn" class="btn-reset">
+                <span>📝</span> EDIT CARDS <span>🔄</span>
+            </button>
+            <div class="starter-footer">
+                <span>🐢</span> <span>🔥</span> <span>🌿</span> <span>⚡</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ----- TOPIC DROPDOWN OPTIONS (tied to each prediction) -----
+            const TOPIC_CATEGORIES = ["General", "Misc", "TCG", "Games", "Mobile", "IRL"];
+
+            // ----- DOM refs -----
+            const inputScreen = document.getElementById('inputScreen');
+            const bingoContainer = document.getElementById('bingoBoardContainer');
+            const globalTopicInput = document.getElementById('globalTopicInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const displayGlobalTopic = document.getElementById('displayGlobalTopic');
+            const bingoGrid = document.getElementById('bingoGrid');
+            const pred16Container = document.getElementById('pred16Container');
+
+            // ---------- BUILD 16 PREDICTION CARDS (input + topic dropdown) ----------
+            function buildSixteenPredictionCards() {
+                pred16Container.innerHTML = '';
+
+                // Starter‑themed default predictions (each with a lil’ story)
+                const defaultPredictions = [
+                    "Pikachu EX rare pull", "Bulbasaur community day", "Charmander raid battle", "Squirtle spotlight hour",
+                    "Ash’s Pikachu promo", "Eevee evolution TCG", "Mewtwo appears in game", "Team Rocket IRL event",
+                    "Pokémon Go Fest 2025", "Scarlet/Violet DLC", "Pocket TCG mobile launch", "Starter shiny rates boosted",
+                    "Misty’s Starmie comeback", "Pokémon Presents", "New Pikachu costume", "Detective Pikachu sequel"
+                ];
+
+                for (let i = 0; i < 16; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'pred-card';
+
+                    // header: index + dropdown
+                    const header = document.createElement('div');
+                    header.className = 'pred-header';
+
+                    const indexBadge = document.createElement('span');
+                    indexBadge.className = 'pred-index';
+                    indexBadge.textContent = `#${i + 1}`;
+
+                    // --- DROPDOWN (topic for this specific prediction) ---
+                    const select = document.createElement('select');
+                    select.className = 'topic-select';
+                    select.setAttribute('data-pred-index', i);
+
+                    TOPIC_CATEGORIES.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = cat;
+                        select.appendChild(option);
+                    });
+                    // set default topic based on index to give variety
+                    select.value = TOPIC_CATEGORIES[i % TOPIC_CATEGORIES.length];
+
+                    header.appendChild(indexBadge);
+                    header.appendChild(select);
+
+                    // prediction text input
+                    const predInput = document.createElement('input');
+                    predInput.type = 'text';
+                    predInput.className = 'pred-input';
+                    predInput.placeholder = `prediction ${i + 1}`;
+                    predInput.value = defaultPredictions[i]; // each unique default
+
+                    card.appendChild(header);
+                    card.appendChild(predInput);
+                    pred16Container.appendChild(card);
+                }
+            }
+            buildSixteenPredictionCards();
+
+            // ----- GET 16 PREDICTIONS + THEIR TOPICS -----
+            function getSixteenPredictionsWithTopics() {
+                const cards = document.querySelectorAll('.pred-card');
+                const items = [];
+                cards.forEach((card) => {
+                    const select = card.querySelector('.topic-select');
+                    const input = card.querySelector('.pred-input');
+                    let predText = input.value.trim();
+                    if (predText === '') predText = '⚡ prediction ⚡';
+                    const topic = select.value;  // selected category
+                    items.push({ text: predText, topic: topic });
+                });
+                return items;  // array of 16 objects
+            }
+
+            // ----- SHUFFLE ARRAY (randomize order) -----
+            function shuffleArray(arr) {
+                const copy = [...arr];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy;
+            }
+
+            // ----- RENDER BINGO BOARD: show prediction + topic badge (dropdown topic) -----
+            function renderRandomizedBoard() {
+                // 1. global board topic
+                let globalTopic = globalTopicInput.value.trim();
+                if (globalTopic === '') globalTopic = 'Pokémon World';
+                displayGlobalTopic.textContent = globalTopic;
+
+                // 2. get 16 prediction objects (text + topic per cell)
+                const predictionItems = getSixteenPredictionsWithTopics();
+
+                // 3. RANDOMIZE the order!
+                const shuffled = shuffleArray(predictionItems);
+
+                // 4. fill 4x4 grid
+                bingoGrid.innerHTML = '';
+                for (let i = 0; i < 16; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'bingo-cell';
+
+                    const predSpan = document.createElement('div');
+                    predSpan.className = 'prediction-text';
+                    predSpan.textContent = shuffled[i].text;
+
+                    const topicSpan = document.createElement('span');
+                    topicSpan.className = 'topic-tag';
+                    topicSpan.textContent = shuffled[i].topic;  // e.g., "TCG", "Games", "Mobile" ...
+
+                    cell.appendChild(predSpan);
+                    cell.appendChild(topicSpan);
+                    bingoGrid.appendChild(cell);
+                }
+            }
+
+            // ----- show/hide -----
+            function showBoard() {
+                renderRandomizedBoard();
+                inputScreen.style.display = 'none';
+                bingoContainer.style.display = 'flex';
+            }
+
+            function showInputScreen() {
+                inputScreen.style.display = 'block';
+                bingoContainer.style.display = 'none';
+            }
+
+            // ----- EVENT LISTENERS -----
+            generateBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                showBoard();
+            });
+
+            resetBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                showInputScreen();
+            });
+
+            // Enter on global topic triggers generate
+            globalTopicInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generateBtn.click();
+                }
+            });
+
+            // initial: input visible
+            showInputScreen();
+        })();
+    </script>
+
+    <!-- Themed background: Pikachu + Starter Pokemon — each cell gets own topic tag! -->
+</body>
+</html>
